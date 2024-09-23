@@ -1,4 +1,9 @@
-# Connect-4 Game 
+##### Table of Contents
+[Introduction](#connect-4-game)
+
+[Statement of Work](#project-title)
+
+# Connect-4 Game
 
 This is a simple Connect-4 game implemented using Python and sockets.
 
@@ -14,8 +19,6 @@ This is a simple Connect-4 game implemented using Python and sockets.
 **Additional resources:**
 * [Link to Python documentation]
 * [Link to sockets tutorial]
-
-# STATEMENT OF WORK
 
 # Project Title
 
