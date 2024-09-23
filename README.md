@@ -14,5 +14,3 @@ This is a simple Connect-4 game implemented using Python and sockets.
 **Additional resources:**
 * [Link to Python documentation]
 * [Link to sockets tutorial]
-    
-# connect-4-game
