@@ -31,6 +31,7 @@ def service_connection(key, mask):
 
 host = '0.0.0.0'
 port = 35565
+MAX_CONNECTIONS = 2
 
 lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 lsock.bind((host, port))
