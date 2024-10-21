@@ -15,6 +15,22 @@ def start_connection(host, port):
     data = types.SimpleNamespace(connid=i+1, msg_total=5, recv_total=0, messages=b"Test",outb=b"",)
     SEL.register(sock, events, data=data)
 
+def build_request():
+    action - input("Enter action (only move is available)")
+    if action == "join":
+        return dict(
+            type="text/json",
+            encoding="utf-8",
+            content="move",
+        )
+    else:
+        print("Invalid action, defaulting to move")
+        return dict(
+            type="text/json",
+            encoding="utf-8",
+            content="move",
+        )
+    
 def service_connection(key, mask):
     sock = key.fileobj
     data = key.data
@@ -38,16 +54,13 @@ def service_connection(key, mask):
 host = '0.0.0.0'
 port = 35565
 
+request = build_request()
+
 start_connection(host, port)
-request = dict(
-    type="text/json",
-    encoding="utf-8",
-    content="join",
-)
 
 try:
     while True:
-    events = SEL.select(timeout=None)
+    events = SEL.select(timeout=1)
     if events:
         for key, mask in events:
             service_connection(key, mask)
