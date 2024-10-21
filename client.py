@@ -5,16 +5,15 @@ import types
 
 SEL = selectors.DefaultSelector()
 
-def start_connection(host, port, num_connections):
+def start_connection(host, port):
     address = (host, port)
-    for i in range(num_connections):
-        print("Beginning connection to ", address)
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.setblocking(False)
-        sock.connect_ex(address)
-        events = selectors.EVENT_READ | selectors.EVENT_WRITE
-        data = types.SimpleNamespace(connid=i+1, msg_total=5, recv_total=0, messages=b"Test",outb=b"",)
-        SEL.register(sock, events, data=data)
+    print("Beginning connection to ", address)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setblocking(False)
+    sock.connect_ex(address)
+    events = selectors.EVENT_READ | selectors.EVENT_WRITE
+    data = types.SimpleNamespace(connid=i+1, msg_total=5, recv_total=0, messages=b"Test",outb=b"",)
+    SEL.register(sock, events, data=data)
 
 def service_connection(key, mask):
     sock = key.fileobj
@@ -38,9 +37,8 @@ def service_connection(key, mask):
 
 host = '0.0.0.0'
 port = 35565
-num_connections = 2
 
-start_connection(host, port, num_connections)
+start_connection(host, port)
 
 try:
     while True:
