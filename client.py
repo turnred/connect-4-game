@@ -39,6 +39,11 @@ host = '0.0.0.0'
 port = 35565
 
 start_connection(host, port)
+request = dict(
+    type="text/json",
+    encoding="utf-8",
+    content="join",
+)
 
 try:
     while True:
