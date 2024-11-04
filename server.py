@@ -2,53 +2,60 @@ import sys
 import socket
 import selectors
 import types
+from libserver.message import *
 
-SEL = selectors.DefaultSelector()
-
-def accept_connection(sock):
-    connection, address = sock.accept()
-    conn.setblocking(False)
-    data = types.SimpleNamespace(addr=addr, inb=b"", outb=b"")
-    events = selectors.EVENT_READ | selectors.EVENT_WRITE
-    SEL.register(connection, events, data=data)
-
-def service_connection(key, mask):
-    sock = key.fileobj
-    data = key.data
-    if mask & selectors.EVENT_READ:
-        recv_data = sock.recv(1024)
-        if recv_data:
-            data.outb += recv_data
-        else:
-            sel.unregister(sock)
-            sock.close()
-            print(data.addr, " connection closed")
-    if mask & selectors.EVENT_WRITE:
-        if data.outb:
-            sent = sock.send(data.outb)
-            data.outb = data.outb[sent:]
-            print("Echoed ", repr(data.outb), "to ", data.addr)
-
-host = '0.0.0.0'
-port = 35565
+sel = selectors.DefaultSelector()
 MAX_CONNECTIONS = 2
+num_connected = 0
 
-lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-lsock.bind((host, port))
-lsock.listen()
-lsock.setblocking(False)
-sel.register(lsock, selectors.EVENT_READ, data=None)
-print("Server started on ", (host, port))
+def build_server(host, port):
+    lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    lsock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        lsock.bind((host, port))
+    except Exception:
+        print("server.py: Fatal Exception: Port Can't Be Bound")
+    lsock.listen()
+    lsock.setblocking(False)
+    print("server.py: Server started on ", (host, port))
+    sel.register(lsock, selectors.EVENT_READ, data=None)
+    
+def build_connection(sock):
+    connection, address = sock.accept()
+    print("server.py: Recieved connection from client", connection, address)
+    if num_connected >= 2:
+        print("server.py: Server can only support 2 clients, rejecting client...")
+        connection.sendall(messages.conn_close())
+        connection.close()
+        return
+    num_connected += 1
+    connection.setblocking(False)
+    events = selectors.EVENT_READ | selectors.EVENT_WRITE
+    sel.register(connection, events, data=Message(sel, connection, address))
 
+def get_num_connections():
+    return num_connected
+
+if len(sys.argv) != 2:
+    print("Provide a port number between 1024 and 65535")
+    sys.exit(1)
+host = '0.0.0.0'
+port = int(sys.argv[1])
+build_server(host, port)
 try:
     while True:
-        events = SEL.select(timeout=None)
+        events = sel.select(timeout=None)
         for key, mask in events:
             if key.data is None:
-                accept_connection(key.fileobj)
+                build_connection(key.fileobj)
             else:
-                service_connection(key, mask)
+                try:
+                    key.data.process_events(mask)
+                except Exception:
+                    print("server.py: Error handling connection, assuming client has disconnected.")
+                    key.data.close()
+                    
 except KeyboardInterrupt:
     print("Gracefully exiting, keyboard interrupt")
 finally:
-    SEL.close()
+    sel.close()
