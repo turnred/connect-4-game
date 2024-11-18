@@ -24,11 +24,11 @@ def get_action():
         else:
             return action
 
-if len(sys.argv) != 3:
-    print("Please provide a host and a port")
+if len(sys.argv) != 5:
+    print("Usage: client.py -h [HOST] -p [PORT]")
     sys.exit(1)
-host = sys.argv[1]
-port = int(sys.argv[2])
+host = sys.argv[2]
+port = int(sys.argv[4])
 
 start_connection(host, port)
 
