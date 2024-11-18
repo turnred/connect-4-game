@@ -8,9 +8,9 @@
 This is a simple Connect-4 game implemented using Python and sockets.
 
 **How to play:**
-1. **Start the server:** Run the `server.py` script.
-2. **Connect clients:** Run the `client.py` script on two different machines or terminals.
-3. **Play the game:** Players take turns entering their moves. The first player to get four connecting chips wins!
+1. **Start the server:** Run the `server.py` script.  Usage: server.py -p [PORT]
+2. **Connect clients:** Run the `client.py` script on two different machines or terminals.  Usage: client.py -h [HOST] -p [PORT]
+3. **Play the game:** Once two players are connected, players enter their usernames and take turns placing chips.  First to four in a row wins!
 
 **Technologies used:**
 * Python
@@ -23,6 +23,11 @@ This is a simple Connect-4 game implemented using Python and sockets.
 # Project Title
 
 * Simple Connect-4
+
+# Game Rules
+1. **The first player to connect makes the first move.**
+2. **Players can only drop tokens on their turn, in a column that isn't full.
+3. **Once there are 4 colors in a row in any direction, the game ends.
 
 ## Team
 
