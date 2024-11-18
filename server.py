@@ -36,11 +36,11 @@ def build_connection(sock):
 def get_num_connections():
     return num_connected
 
-if len(sys.argv) != 2:
-    print("Provide a port number between 1024 and 65535")
+if len(sys.argv) != 3:
+    print("Usage: server.py -p [PORT]")
     sys.exit(1)
 host = '0.0.0.0'
-port = int(sys.argv[1])
+port = int(sys.argv[2])
 build_server(host, port)
 try:
     while True:
