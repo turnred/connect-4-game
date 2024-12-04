@@ -1,4 +1,8 @@
 import selectors
+import struct
+import json
+import io
+import sys
 
 from libclient.messages import *
 
@@ -35,9 +39,23 @@ class Message:
             if message.get("state") == "waiting":
                 username = input("Please input a username")
                 self.write(self.messages.msg_username(username, self.sock))
+            elif message.get("state") == "in progress":
+                self.board == message.get("board")
+                self.print_board()
         if type == "moveresponse":
             if message.get("move") == False:
-                return
+                print(f'Server returned move as invalid')
+                column = input("Input a move")
+                self.write(self.messages.msg_move(column), self.sock)
+            elif message.get("move") == True:
+                self.print_board()
+
+    def print_board(self):
+        """Prints the gameboard"""
+        print("\n")
+        for row in self.board:
+            print(" ".join(row))
+        print("\n\n\n")
             
     def write(self, message, sock):
         """Writes data to the server"""
