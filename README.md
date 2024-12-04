@@ -25,8 +25,8 @@ The server and client communicate with JSON messages, akin to the ones used in C
 * Sockets
 
 **Additional resources:**
-* [Link to Python documentation]
-* [Link to sockets tutorial]
+* [Link to Python documentation](https://docs.python.org/3/)
+* [Link to sockets tutorial](https://docs.python.org/3/howto/sockets.html)
 
 # Statement of Work
 
