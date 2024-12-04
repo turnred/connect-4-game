@@ -12,6 +12,14 @@ This is a simple Connect-4 game implemented using Python and sockets.
 2. **Connect clients:** Run the `client.py` script on two different machines or terminals.  Usage: client.py -h [HOST] -p [PORT]
 3. **Play the game:** Once two players are connected, players enter their usernames and take turns placing chips.  First to four in a row wins!
 
+**Protocol**
+The server and client communicate with JSON messages, akin to the ones used in CS 314 and 414.  Messages follow a request/response structure, with the client receiving the server's responses.  Clients listen for additional game information beyond requests, such as the state or current board status.
+
+**Known Issues**
+1. The client and server enter infinite loops upon connecting.
+2. All communication is done over plaintext.  There is no encryption.
+3. There is no JSON schema validation, so a malicious actor could send malformed packets to the server.
+
 **Technologies used:**
 * Python
 * Sockets
@@ -20,7 +28,7 @@ This is a simple Connect-4 game implemented using Python and sockets.
 * [Link to Python documentation]
 * [Link to sockets tutorial]
 
-# Project Title
+# Statement of Work
 
 * Simple Connect-4
 
