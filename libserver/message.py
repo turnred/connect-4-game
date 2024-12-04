@@ -3,60 +3,93 @@ import struct
 import json
 import io
 
-import libserver.messages as messages
+from libserver.user import *
+from libserver.messages import *
+from libserver.game import *
 
 class Message:
-    def __init__(self, selector, sock, address):
-        self.selector = selector
-        self.sock = sock
-        self.address = address
+    def __init__(self, sel, connected):
+        self.sel = sel
+        self.connected = connected
+        self.users = {}
+        self.messages = Messages()
 
-    def _json_decode(self, json_bytes, encoding):
+    def _json_decode(self, json_bytes):
         """returns a decoded json object from encoding: utf-8."""
-        tiow = io.TextIOWrapper(
-            io.BytesIO(json_bytes), encoding=encoding, newline=""
-        )
-        obj = json.load(tiow)
-        tiow.close()
-        return obj
+        json_msg = json.loads(json_bytes)
+        return json_msg
     
-    def _set_selector_events_mask(self, mode):
-        """Set selector to listen for events: mode is 'r', 'w', or 'rw'."""
-        if mode == "r":
-            events = selectors.EVENT_READ
-        elif mode == "w":
-            events = selectors.EVENT_WRITE
-        elif mode == "rw":
-            events = selectors.EVENT_READ | selectors.EVENT_WRITE
-        else:
-            raise ValueError(f"Invalid events mask mode {repr(mode)}.")
-        self.selector.modify(self.sock, events, data=self)
-    
-    def process_events(self, mask):
-        if mask & selectors.EVENT_READ:
-            self.read()
-        if mask & selectors.EVENT_WRITE:
-            self.write()
-    
-    def read(self):
-        data_buffer = self.sock.recv(4)
+    def read(self, sock):
+        """Reads data from clients"""
+        data_buffer = sock.recv(4)
         if data_buffer:
             length = struct.unpack('<i', data_buffer)
-            data = self.sock.recv(length[0])
-            print(f'Received data length of {length} bytes')
-            message = self._json_decode(data, "utf-8").get("message")
-            if message == "username":
-                #users.setname()
-                self.write(messages.conn_ok, self.sock)
-            if message == "move":
-                move = messages.move()
-                self.write(move, self.sock)
-                self.write_all(messages.board)
+            data = sock.recv(length[0])
+            print(f'Received data of length {length}')
+            message = self._json_decode(data)
+            self.action_handler(message, sock)
+
+    def action_handler(self, message, sock):
+        """Upon receiving a JSON request, handles it"""
+        action = message.get("type")
+        if action is None:
+            return
+        if action == "namerequest":
+            self.set_username(sock, message)
+        if action == "moverequest":
+            self.move_handler()        
+
+    def set_username(self, sock, message):
+        """Sets a client's username"""
+        username = message.get("username")
+        if username:
+            address = self.connected.get(sock)
+            self.users[address].set_name(username)
+            self.write(Messages.msg_nameaccept(), sock)
+        else:
+            self.write(Messages.msg_namerefuse(), sock)
+        if self.both_users_connected():
+            self.game = Game(self.users)
+            self.writeall(Messages.msg_gamestate("in progress"))
+
+    def both_users_connected(self):
+        """Utility for if a game can begin"""
+        for user in self.users:
+            if user.name is None:
+                return False
+        return True
+    
+    def move_handler(self, message, sock):
+        """Checks if a move is valid, returns JSON to the client"""
+        if not self.game:
+            self.writeall(Messages.msg_gamestate("waiting"))
+            return
+        moveto = message.get("column")
+        if self.game.draw_check() is True:
+            self.writeall(Messages.msg_gameover("None"))
+        if moveto:
+            if self.game.bounds_check(moveto) is True:
+                self.game.move(moveto)
+                self.game.switch_turn()
+                self.write(Messages.msg_move(True), sock)
+                winner = self.game.check_winner()
+                if winner:
+                    self.writeall(Messages.msg_gameover(winner))
+                else:
+                    self.writeall(Messages.msg_gamestatus(self.game.current_turn, self.game.turn_count, moveto))
+            else:
+                self.write(Messages.msg_move(False), sock)
+    
+    def create_user(self, address):
+        """Users are a dictionary of addresses and usernames"""
+        self.users[address] = User(address)
 
     def write(self, message, sock):
-        print(f'Wrote data to client')
+        """Writes data to the client"""
+        print("Wrote data to client", sock)
         sock.sendall(message)
     
-    def write_all(self, message):
-        for user in user.get_user():
-            user.sock.send(message)
+    def writeall(self, message):
+        """Writes data to all clients"""
+        for sock in self.connected:
+            self.write(message, sock)
