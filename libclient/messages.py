@@ -1,27 +1,21 @@
 import json
 import struct
 
-def _pack(message):
-    bytes_msg = _json_encode(message, "utf-8")
-    return struct.pack(f'<i{len(bytes_msg)}s', len(bytes_msg), bytes_msg)
+class Messages:
+    def _pack(message):
+        json_msg = json.dumps(message).encode("utf-8")
+        return struct.pack(f'<I{len(json_msg)}s', len(json_msg), json_msg)
 
-def _json_encode(self, obj, encoding):
-    return json.dumps(obj, ensure_ascii=False).encode(encoding)
+    def msg_move(self, column):
+        message = {
+            "type": "moverequest",
+            "column": column
+        }
+        return self._pack(message)
 
-def start_conn():
-    message = {
-        "message": "connect"
-    }
-    return _pack(message)
-
-def move():
-    message = {
-        "message": "move"
-    }
-    return _pack(message)
-
-def change_name():
-    message = {
-        "message": "username"
-    }
-    return _pack(message)
+    def msg_username(self, username):
+        message = {
+            "type": "namerequest",
+            "username": username
+        }
+        return self._pack(message)
