@@ -1,6 +1,10 @@
 class User:
 
-    def __init__(self, address, port):
+    def __init__(self, address):
         self.address = address
-        self.port = port
         self.name = None
+    
+    def set_name(self, name: str):
+        """Sets a user's name"""
+        self.name = name
+        
